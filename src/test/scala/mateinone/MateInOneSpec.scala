@@ -120,11 +120,11 @@ class MateInOneSpec extends Specification {
   }
 
   "multiMove" should {
-      "blah1" in
+      "single side 2 move" in
     {
     Board.initial.multiMove(2,E2->E4, E4->E5) must beSome
     }
-    "blah" in
+    "each side 2 move" in
     {
     Board.initial.multiMove(2,E2->E4, E4->E5, E7->E6, E8->E7) must beSome
     }

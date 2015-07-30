@@ -65,6 +65,8 @@ import Board._
 
 case class Board private(same: Side, opponent: Side, private val twoSquarePawn: Option[Move], private val positions: Vector[(Side, Side)], private val pawnOrCapture: Int) {
 
+  def changeSides:Board = Board(opponent, same, twoSquarePawn, positions, pawnOrCapture) 
+
   def leaves: Vector[(MoveBase, Board)] = {
     import OffsetConstants._
     import CastleConstants._
@@ -164,6 +166,32 @@ case class Board private(same: Side, opponent: Side, private val twoSquarePawn: 
   def mayClaimDraw: Boolean = isThreefoldRepetition || isFiftyMoveRule
 
   def move(movesToMake: List[MoveBase]): Option[Board] = movesToMake match { case h :: t => leaves.find(_._1 == h).flatMap(_._2.move(t)); case _ => Some(this) }
+
   def move(movesToMake: MoveBase*): Option[Board] = move(movesToMake.toList)
 
+  def sameSideMove(movesToMake: List[MoveBase]):Option[Board] =
+      movesToMake match {
+        case h :: t => leaves.find(_._1 == h).flatMap(_._2.changeSides.sameSideMove(t))
+        case _ => Some(this)
+      }
+
+
+  def multiMove(movesToMake:List[MoveBase], numMoves:Int): Option[Board] =
+  {
+    val grouped = movesToMake.grouped(numMoves).zipWithIndex
+
+    grouped.foldLeft(Some(this):Option[Board]){
+      (acc,mvs) =>
+      if(mvs._2 % 2 == 0) // if even dont change sides
+        acc.flatMap(_.sameSideMove(mvs._1))
+      else {
+        for {
+          board <- acc
+          sameSideMoved <- board.changeSides.sameSideMove(mvs._1)
+        } yield { sameSideMoved}
+      }
+    }
+  }
+
+   def multiMove(num:Int, movesToMake:MoveBase*): Option[Board] = multiMove(movesToMake.toList, num)
 }

@@ -119,6 +119,16 @@ class MateInOneSpec extends Specification {
 
   }
 
+  "multiMove" should {
+      "blah1" in
+    {
+    Board.initial.multiMove(2,E2->E4, E4->E5) must beSome
+    }
+    "blah" in
+    {
+    Board.initial.multiMove(2,E2->E4, E4->E5, E7->E6, E8->E7) must beSome
+    }
+  }
   "Draw" should {
 
     "1. e3 a5 2. Qh5 Ra6 3. Qxa5 h5 4. h4 Rah6 5. Qxc7 f6 6. Qxd7+ Kf7 7. Qxb7 Qd3 8. Qxb8 Qh7 9. Qxc8 Kg6 10. Qe6; Stalemate." in

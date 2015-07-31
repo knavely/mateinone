@@ -188,7 +188,7 @@ case class Board private(same: Side, opponent: Side, private val twoSquarePawn: 
         for {
           board <- acc
           sameSideMoved <- board.changeSides.sameSideMove(mvs._1)
-        } yield { sameSideMoved}
+        } yield { sameSideMoved.changeSides}
       }
     }
   }

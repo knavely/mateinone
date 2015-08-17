@@ -67,7 +67,7 @@ case class Board private(same: Side, opponent: Side, private val twoSquarePawn: 
 
   def changeSides:Board = Board(opponent, same, twoSquarePawn, positions, pawnOrCapture) 
 
-  def leaves: Vector[(MoveBase, Board)] = {
+  def tleaves(moveNum:Int = 1): Vector[(MoveBase, Board)] = {
     import OffsetConstants._
     import CastleConstants._
 
@@ -136,10 +136,11 @@ case class Board private(same: Side, opponent: Side, private val twoSquarePawn: 
           createLeaf(kingside); createLeaf(queenside)
         }
         castleLeaves
-      }).filterNot { case (_, b) => Board.isCheck(b.opponent, b.same) }
+        //if its the last move, cant move into check
+      }).filterNot { case (_, b) => moveNum == 1 && Board.isCheck(b.opponent, b.same) }
 
   }
-
+  def leaves = tleaves(1)
   def moves: Vector[MoveBase] = leaves.map(_._1)
   def boards: Vector[Board] = leaves.map(_._2)
 
@@ -169,9 +170,9 @@ case class Board private(same: Side, opponent: Side, private val twoSquarePawn: 
 
   def move(movesToMake: MoveBase*): Option[Board] = move(movesToMake.toList)
 
-  def sameSideMove(movesToMake: List[MoveBase]):Option[Board] =
+  def sameSideMove(movesToMake: List[MoveBase], numMove:Int):Option[Board] =
       movesToMake match {
-        case h :: t => leaves.find(_._1 == h).flatMap(_._2.changeSides.sameSideMove(t))
+        case h :: t => tleaves(numMove).find(_._1 == h).flatMap(_._2.changeSides.sameSideMove(t,numMove-1))
         case _ => Some(this)
       }
 
@@ -183,12 +184,12 @@ case class Board private(same: Side, opponent: Side, private val twoSquarePawn: 
     grouped.foldLeft(Some(this):Option[Board]){
       (acc,mvs) =>
       if(mvs._2 % 2 == 0) // if even dont change sides
-        acc.flatMap(_.sameSideMove(mvs._1))
+        acc.flatMap(_.sameSideMove(mvs._1,numMoves))
       else {
         for {
           board <- acc
-          sameSideMoved <- board.changeSides.sameSideMove(mvs._1)
-        } yield { sameSideMoved.changeSides}
+          sameSideMoved <- board.changeSides.sameSideMove(mvs._1,numMoves)
+        } yield sameSideMoved.changeSides
       }
     }
   }
